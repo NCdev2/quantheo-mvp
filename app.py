@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from vpython import *
 
 # Branding
 st.set_page_config(page_title="Quantheo", layout="wide")
@@ -13,6 +12,18 @@ page = st.sidebar.radio("Go to", ["Home", "About", "Contact", "Pricing", "Simula
 possible_extensions = [".png", ".jpg", ".jpeg"]
 logo_path = None
 
+# Navigation Sidebar
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Home", "Simulations"])
+
+
+# Simulations Section
+elif page == "Simulations":
+    st.title("Physics Simulations")
+    st.write("Explore interactive physics simulations powered by Three.js.")
+
+    # Embed GitHub Pages (Simulations)
+    st.components.v1.iframe("https://ncdev2.github.io/Simulations/", width=1000, height=600)
 for ext in possible_extensions:
     temp_path = os.path.join(os.getcwd(), f"quantheo_logo{ext}")
     if os.path.exists(temp_path):
