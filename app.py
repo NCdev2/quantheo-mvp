@@ -45,40 +45,6 @@ def pricing():
     st.write("🟢 **Free Plan**: Limited Simulations")
     st.write("🔵 **Premium Plan**: Full Access")
 
-
-def simulation():
-    st.title("Newton's First Law - Inertia Simulation")
-    st.write("An object in motion stays in motion unless acted upon by an external force.")
-    st.write("Use the controls below to experiment with inertia and friction.")
-
-    # Initialize session state variables
-    if "velocity" not in st.session_state:
-        st.session_state.velocity = vector(1, 0, 0)
-    if "position" not in st.session_state:
-        st.session_state.position = vector(-5, 0, 0)
-
-    # User controls
-    apply_force = st.checkbox("Apply Force", value=False)
-    friction = st.slider("Friction Coefficient", 0.0, 1.0, 0.1, 0.01)
-
-    # VPython Scene
-    scene = canvas(width=600, height=400)
-    ball = sphere(pos=st.session_state.position, radius=0.3, color=color.red, make_trail=True)
-    ground = box(pos=vector(0, -0.5, 0), size=vector(12, 0.2, 4), color=color.gray(0.5))
-
-    # Update simulation when button is pressed
-    if st.button("Update Simulation"):
-        dt = 0.1
-        if apply_force:
-            st.session_state.velocity += vector(0.2, 0, 0) * dt
-        st.session_state.velocity *= (1 - friction * dt)
-        st.session_state.position += st.session_state.velocity * dt
-        ball.pos = st.session_state.position
-
-        st.write(f"Current Velocity: {st.session_state.velocity.x:.2f}")
-        st.write(f"Current Position: {st.session_state.position.x:.2f}")
-
-
 # Routing logic
 pages = {
     "Home": home,
