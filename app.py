@@ -1,50 +1,60 @@
 import streamlit as st
 import os
 import pyrebase
-
-# Set Streamlit page config (must be at the top)
-st.set_page_config(page_title="Quantheo", layout="wide")
-
-from firebase_config import firebase_config  # Import dictionary properly
+from firebase_config import firebase_config
 
 # Initialize Firebase
-firebase = pyrebase.initialize_app(firebase_config)  # ✅ Fixed this line
+firebase = pyrebase.initialize_app(firebase_config)
 auth = firebase.auth()
 
 # Streamlit UI
-st.title("Quantheo User Registration")
+st.set_page_config(page_title="Quantheo", layout="wide")
 
-# User Registration
-choice = st.selectbox("Login or Sign Up", ["Login", "Sign Up"])
+# Initialize session state for authentication
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.user_email = ""
 
-email = st.text_input("Email")
-password = st.text_input("Password", type="password")  # ✅ Password is hidden
+# User Authentication
+def login(email, password):
+    try:
+        user = auth.sign_in_with_email_and_password(email, password)
+        st.session_state.logged_in = True
+        st.session_state.user_email = email
+        st.success(f"Welcome, {email}!")
+    except Exception as e:
+        st.error(f"Login Failed: {e}")
 
-if choice == "Sign Up":
-    if st.button("Create Account"):
+def logout():
+    st.session_state.logged_in = False
+    st.session_state.user_email = ""
+    st.experimental_rerun()
+
+# If user is NOT logged in, show authentication form
+if not st.session_state.logged_in:
+    st.title("🔐 User Authentication")
+    choice = st.selectbox("Login or Sign Up", ["Login", "Sign Up"])
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+
+    if choice == "Sign Up" and st.button("Create Account"):
         try:
-            user = auth.create_user_with_email_and_password(email, password)
-            st.success("✅ Account Created Successfully! Please log in.")
+            auth.create_user_with_email_and_password(email, password)
+            st.success("Account Created! Please login.")
         except Exception as e:
-            st.error(f"⚠️ Error: {e}")
+            st.error(f"Error: {e}")
 
-if choice == "Login":
-    if st.button("Login"):
-        try:
-            user = auth.sign_in_with_email_and_password(email, password)
-            st.success("✅ Login Successful!")
-            st.write(f"Welcome, **{email}**!")
-        except Exception as e:
-            st.error(f"⚠️ Error: {e}")
+    if choice == "Login" and st.button("Login"):
+        login(email, password)
 
-# Automatically find the correct logo file
-possible_extensions = [".png", ".jpg", ".jpeg"]
-logo_path = None
-for ext in possible_extensions:
-    temp_path = os.path.join(os.getcwd(), f"quantheo_logo{ext}")
-    if os.path.exists(temp_path):
-        logo_path = temp_path
-        break
+    st.stop()  # Stop further execution if user is not logged in
+
+# Show logout button on all pages
+st.sidebar.button("Logout", on_click=logout)
+
+# Main Content After Authentication
+st.title("🚀 Welcome to Quantheo")
+st.write(f"You're logged in as **{st.session_state.user_email}**")
 
 # Sidebar Navigation
 st.sidebar.title("Navigation")
@@ -52,42 +62,25 @@ page = st.sidebar.radio("Go to", ["Home", "About", "Contact", "Pricing", "Simula
 
 # Define pages
 def home():
-    st.title("🚀 Welcome to Quantheo")
-    st.write("Interactive Science and Mathematics Simulations.")
-    if logo_path:
-        st.image(logo_path, width=300)
-    else:
-        st.warning("⚠️ Logo not found. Make sure 'quantheo_logo.png' or '.jpg' is in the project folder.")
+    st.title("🏠 Home")
+    st.write("Welcome to Quantheo's interactive science simulations!")
 
 def about():
     st.title("📖 About Quantheo")
-    st.write("Quantheo is a platform that makes science interactive using simulations.")
+    st.write("Quantheo makes science interactive using AI-driven simulations.")
 
 def contact():
     st.title("📧 Contact Us")
-    st.write("✉️ Email: contact@quantheo.com")
+    st.write("Email: contact@quantheo.com")
 
 def pricing():
     st.title("💰 Pricing Plans")
-    st.write("🟢 **Free Plan**: Limited Simulations")
-    st.write("🔵 **Premium Plan**: Full Access")
+    st.write("Choose from Free or Premium plans.")
 
 def simulations():
-    st.title("⚛️ Physics Simulations")
-    st.write("Explore interactive physics simulations powered by Three.js.")
+    st.title("🔬 Physics Simulations")
     st.components.v1.iframe("https://ncdev2.github.io/Simulations/", width=1000, height=600)
 
-# Routing logic
-pages = {
-    "Home": home,
-    "About": about,
-    "Contact": contact,
-    "Pricing": pricing,
-    "Simulations": simulations
-}
-
-# Execute selected page function
-if page in pages:
-    pages[page]()
-else:
-    st.error("⚠️ Page not found.")
+# Page Routing
+pages = {"Home": home, "About": about, "Contact": contact, "Pricing": pricing, "Simulations": simulations}
+pages[page]()
